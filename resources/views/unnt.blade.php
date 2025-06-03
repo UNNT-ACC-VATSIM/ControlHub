@@ -8,12 +8,8 @@
   <link rel="stylesheet" href="{{ asset('css/unnt.css') }}" />
 </head>
 <body>
-    <!-- Кнопка "Наверх" -->
-    <button id="scrollToTopBtn" aria-label="Наверх" class="scroll-top-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-        <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
-      </svg>
-    </button>
+  <!-- Кнопка "Наверх" -->
+@include ('layouts.upbutton')
 
     <div id="imageModal" class="modal">
       <span class="close">&times;</span>
