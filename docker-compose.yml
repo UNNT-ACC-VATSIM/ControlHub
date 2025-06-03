@@ -5,7 +5,7 @@ services:
     build: .
     container_name: controlhub-app
     volumes:
-      - ./laravel:/var/www
+      - .:/var/www
     ports:
       - "8000:8000"
     depends_on:
