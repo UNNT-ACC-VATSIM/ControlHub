@@ -10,3 +10,6 @@ Route::get('/unnt', function () {
     return view('unnt');
 });
 
+Route::get('/home', function () {
+    return view('home');
+});
