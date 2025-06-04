@@ -1,4 +1,2 @@
-// Variables
-@import "variables";
-// APP
-@import  "global.scss";
+@use 'variables' as *;
+@use 'global' as *;
