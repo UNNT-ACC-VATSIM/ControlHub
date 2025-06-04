@@ -3,7 +3,3 @@
 <head>
     @include('layouts.header')
 </head>
-<body>
-   <h1>HELLO</h1>
-</body>
-</html>

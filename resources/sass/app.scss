@@ -1,2 +1,3 @@
-@use 'variables' as *;
-@use 'global' as *;
+@import "variables";
+
+@import "global.scss";
