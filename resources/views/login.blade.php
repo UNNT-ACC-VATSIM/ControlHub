@@ -8,13 +8,12 @@ function safeOutput($value) {
     return htmlspecialchars((string)$value);
 }
 
-// Если пришёл код от OAuth — обрабатываем
 if (isset($_GET['code'])) {
     $code = $_GET['code'];
 
     $client_id     = '1076';
     $client_secret = 'A0LJOm3NqIdafK3AHxRQDkYwhjZmexHKpPL6CIsh';
-    $redirect_uri  = 'http://localhost:8000/profile';
+    $redirect_uri  = 'http://localhost:8000/auth/callback';
 
     $token_url = 'https://auth-dev.vatsim.net/oauth/token';
 
@@ -38,7 +37,7 @@ if (isset($_GET['code'])) {
         die("<h2>Ошибка получения токена:</h2><pre>" . safeOutput($token_response) . "</pre>");
     }
 
-    // Получаем данные пользователя
+    // Получение профиля пользователя
     $user_info_response = file_get_contents('https://auth-dev.vatsim.net/api/user', false, stream_context_create([
         'http' => [
             'method'  => 'GET',
@@ -51,26 +50,23 @@ if (isset($_GET['code'])) {
     if (!$user_data) {
         die("<h2>Ошибка получения данных пользователя</h2>");
     }
-
+    // Сохраняем в сессию
     $_SESSION['user_data'] = $user_data;
 
-    // Переход на профиль
-    header('Location: profile.php');
+    header('Location: /profile');
     exit;
 }
 
-// Если пользователь уже авторизован — перенаправим на профиль
 if (isset($_SESSION['user_data'])) {
-    header('Location: profile.php');
+    header('Location: /profile');
     exit;
 }
 
-// Показываем кнопку авторизации
 $auth_url = 'https://auth-dev.vatsim.net/oauth/authorize?' . http_build_query([
     'client_id'     => '1076',
-    'redirect_uri'  => 'http://localhost:8000/profile',
+    'redirect_uri'  => 'http://localhost:8000/auth/callback',
     'response_type' => 'code',
-    'scope'         => 'full_name email',
+    'scope'         => 'full_name email vatsim_details country',
 ]);
 ?>
 <!DOCTYPE html>
