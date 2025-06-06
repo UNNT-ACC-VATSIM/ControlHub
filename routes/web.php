@@ -1,11 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\VatsimLoginController;
 
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', [VatsimLoginController::class, 'redirectToProvider'])->name('login');
 
-Route::get('/login', function () {
-    return view('login');
-});
+Route::get('/auth/callback', [VatsimLoginController::class, 'handleProviderCallback'])->name('vatsim.callback');
+
+Route::get('/profile', [VatsimLoginController::class, 'profile'])->name('profile');

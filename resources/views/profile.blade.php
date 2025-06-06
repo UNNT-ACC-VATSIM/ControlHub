@@ -1,75 +1,3 @@
-<?php
-session_start();
-
-function safeOutput($value) {
-    if (is_array($value)) {
-        return htmlspecialchars(json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-    }
-    return htmlspecialchars((string)$value);
-}
-
-// Если пришёл код авторизации, обрабатываем
-if (isset($_GET['code'])) {
-    $code = $_GET['code'];
-
-    $client_id     = '1076';
-    $client_secret = 'Ph8sJqIGnao9Ucx8O7sIdwxRKVKGc39awYfbU4x4';
-    $redirect_uri  = 'http://localhost:8000/';
-
-    $token_url = 'https://auth-dev.vatsim.net/oauth/token';
-
-    $token_response = file_get_contents($token_url, false, stream_context_create([
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
-            'content' => http_build_query([
-                'grant_type'    => 'authorization_code',
-                'client_id'     => $client_id,
-                'client_secret' => $client_secret,
-                'redirect_uri'  => $redirect_uri,
-                'code'          => $code,
-            ]),
-        ]
-    ]));
-
-    $token_data = json_decode($token_response, true);
-
-    if (!isset($token_data['access_token'])) {
-        die("<h2>Ошибка получения токена:</h2><pre>" . safeOutput($token_response) . "</pre>");
-    }
-
-    // Получаем данные пользователя
-    $user_info_response = file_get_contents('https://auth-dev.vatsim.net/api/user', false, stream_context_create([
-        'http' => [
-            'method'  => 'GET',
-            'header'  => "Authorization: Bearer " . $token_data['access_token'],
-        ]
-    ]));
-
-    $user_data = json_decode($user_info_response, true);
-
-    if (!$user_data) {
-        die("<h2>Ошибка получения данных пользователя</h2>");
-    }
-
-    // Сохраняем данные в сессию
-    $_SESSION['user_data'] = $user_data;
-
-    // Редирект на чистый URL (без параметров)
-    header('Location: http://localhost:8000/');
-    exit;
-}
-
-// Если данных в сессии нет — предложить авторизоваться
-if (!isset($_SESSION['user_data'])) {
-    echo '<h2>Пожалуйста, авторизуйтесь</h2>';
-    // Можно добавить ссылку на OAuth авторизацию здесь
-    exit;
-}
-
-$user_data = $_SESSION['user_data'];
-
-?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -113,42 +41,42 @@ $user_data = $_SESSION['user_data'];
 
     <div class="field">
         <label>CID:</label>
-        <span><?= safeOutput($user_data['data']['cid'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['cid'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Полное имя:</label>
-        <span><?= safeOutput($user_data['data']['personal']['name_full'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['personal']['name_full'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Email:</label>
-        <span><?= safeOutput($user_data['data']['personal']['email'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['personal']['email'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Страна:</label>
-        <span><?= safeOutput($user_data['data']['personal']['country'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['personal']['country'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Дата рождения:</label>
-        <span><?= safeOutput($user_data['data']['personal']['date_of_birth'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['personal']['date_of_birth'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Регион:</label>
-        <span><?= safeOutput($user_data['data']['vatsim']['region'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['vatsim']['region'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Дивизион:</label>
-        <span><?= safeOutput($user_data['data']['vatsim']['division'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['vatsim']['division'] ?? 'Не указано' }}</span>
     </div>
 
     <div class="field">
         <label>Поддивизион:</label>
-        <span><?= safeOutput($user_data['data']['vatsim']['subdivision'] ?? 'Не указано') ?></span>
+        <span>{{ $user_data['data']['vatsim']['subdivision'] ?? 'Не указано' }}</span>
     </div>
 </div>
 </body>
