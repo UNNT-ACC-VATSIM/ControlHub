@@ -4,7 +4,7 @@
     @include('layouts.header') <!-- Подключаем header.blade.php -->
 </head>
     @include('layouts.cap') <!-- Подключаем cap.blade.php -->
-    @include('layouts.navmenu') <!-- Подключаем navmenu.blade.php -->
+    @include('layouts.nav-menu') <!-- Подключаем navmenu.blade.php -->
     
     <main class="content">
         @yield('content') <!-- Основное содержимое страниц -->
