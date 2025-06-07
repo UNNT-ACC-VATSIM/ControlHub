@@ -9,5 +9,7 @@
 
 @vite(['resources/sass/app.scss'])
 
+@yield('header-style')
+
 <link rel="icon" href="{{ asset('images/UNNT_ACC.png') }}" type="image/png">
 

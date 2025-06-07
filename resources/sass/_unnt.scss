@@ -1,0 +1,44 @@
+.under-construction-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 100px);
+  text-align: center;
+  padding: 20px;
+}
+
+.under-construction-message-box {
+  background: var(--white); /* Используем переменную */
+  padding: 40px 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  color: #222;
+}
+
+.under-construction-message-box h1 {
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-size: 2em;
+}
+
+.under-construction-message-box p {
+  color: var(--text);
+  font-size: 1.1em;
+}
+
+.under-construction-home-button {
+  display: inline-block;
+  background-color: var(--primary);
+  color: var(--white);
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.under-construction-home-button:hover {
+  background-color: var(--primary-dark);
+}

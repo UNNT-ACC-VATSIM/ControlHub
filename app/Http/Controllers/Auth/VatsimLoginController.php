@@ -95,4 +95,19 @@ public function showLogin()
 
         return redirect()->route('login')->with('success', 'Вы успешно вышли из системы.');
     }
+
+       public function unnt()
+    {
+        // Проверка авторизации (если нужна)
+        if (!session()->has('user_data')) {
+            return redirect()->route('login');
+        }
+
+        // Возвращаем view для UNNT
+        return view('airports.unnt', [
+            'activePage' => 'unnt',
+            'title' => 'Региональный центр Новосибирск',
+            'subtitle' => 'Официальный центр управления воздушным движением в сети VATSIM'
+        ]);
+    }
 }

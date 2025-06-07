@@ -1,0 +1,82 @@
+.user-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.user-name-btn, .login-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #fff;
+    display: flex;
+    align-items: center; /* чтобы эмодзи и текст были по центру по вертикали */
+    gap: 8px;
+    padding: 5px 10px;
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    min-width: 140px;
+    z-index: 1000;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.user-dropdown li {
+    border-bottom: 1px solid #eee;
+}
+
+.user-dropdown li:last-child {
+    border-bottom: none;
+}
+
+.user-dropdown li a, .user-dropdown li button {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.user-dropdown li a:hover, .user-dropdown li button:hover {
+    background-color: #f0f8ff; /* нежный голубой фон при наведении */
+    color: #000; /* текст темнеет */
+}
+
+.user-avatar-emoji {
+    font-size: 25px; /* размер эмодзи */
+    /* margin-right не нужен, т.к. есть gap у flex */
+}
+
+.logout-btn {
+    color: white;
+    background-color: #e74c3c; /* красивый красный */
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    text-align: center;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b; /* темнее при наведении */
+}

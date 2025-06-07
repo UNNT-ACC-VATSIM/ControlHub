@@ -17,6 +17,10 @@ Route::get('/login', [VatsimLoginController::class, 'showLogin'])->name('login')
 Route::get('/auth/callback', [VatsimLoginController::class, 'handleProviderCallback'])->name('vatsim.callback');
 
 // Профиль пользователя (требует авторизации)
+Route::get('/unnt', [VatsimLoginController::class, 'unnt'])->name('airports.unnt');
+
+
+// Профиль пользователя (требует авторизации)
 Route::get('/profile', [VatsimLoginController::class, 'profile'])->name('profile');
 
 // Главная (домашняя) страница (требует авторизации)
