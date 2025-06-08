@@ -16,14 +16,16 @@ Route::get('/login', [VatsimLoginController::class, 'showLogin'])->name('login')
 // Callback от VATSIM OAuth
 Route::get('/auth/callback', [VatsimLoginController::class, 'handleProviderCallback'])->name('vatsim.callback');
 
-// Профиль пользователя (требует авторизации)
+// Страница аэропорта UNNT
 Route::get('/unnt', [VatsimLoginController::class, 'unnt'])->name('airports.unnt');
 
-
-// Профиль пользователя (требует авторизации)
+// Профиль текущего пользователя (требует авторизации)
 Route::get('/profile', [VatsimLoginController::class, 'profile'])->name('profile');
 
-// Главная (домашняя) страница (требует авторизации)
+// Профиль произвольного пользователя по CID (доступен владельцу или админу)
+Route::get('/profile/user/{id}', [VatsimLoginController::class, 'showUserProfile'])->name('profile.show');
+
+// Главная страница (требует авторизации)
 Route::get('/home', function () {
     if (!session()->has('user_data')) {
         return redirect()->route('login');

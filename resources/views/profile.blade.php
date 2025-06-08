@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@include('layouts.cap')
 @section('title', 'Профиль VATSIM')
 @section('page_title', 'Профиль')
 
@@ -15,24 +15,26 @@
             <h1 class="profile-title">Данные пользователя VATSIM</h1>
         </div>
 
-        <div class="fields">
-            @php
-                $user = $user_data['data'] ?? [];
-            @endphp
-            @foreach ([
+        @php
+            $user = $user_data['data'] ?? [];
+            $fields = [
                 'CID' => $user['cid'] ?? 'Не указано',
                 'Полное имя' => $user['personal']['name_full'] ?? 'Не указано',
                 'Email' => $user['personal']['email'] ?? 'Не указано',
                 'Страна' => $user['personal']['country']['name'] ?? 'Не указано',
-                'Регион' => ($user['vatsim']['region']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['region']['id'] ?? '') . ')',
-                'Дивизион' => ($user['vatsim']['division']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['division']['id'] ?? '') . ')',
-                'Поддивизион' => ($user['vatsim']['subdivision']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['subdivision']['id'] ?? '') . ')',
-                'Рейтинг диспетчера' => ($user['vatsim']['rating']['long'] ?? 'Не указано') . ' (' . ($user['vatsim']['rating']['short'] ?? '') . ')',
-                'Рейтинг пилота' => ($user['vatsim']['pilotrating']['long'] ?? 'Не указано') . ' (' . ($user['vatsim']['pilotrating']['short'] ?? '') . ')',
-            ] as $label => $value)
+                'Регион' => ($user['vatsim']['region']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['region']['id'] ?? '-') . ')',
+                'Дивизион' => ($user['vatsim']['division']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['division']['id'] ?? '-') . ')',
+                'Поддивизион' => ($user['vatsim']['subdivision']['name'] ?? 'Не указано') . ' (' . ($user['vatsim']['subdivision']['id'] ?? '-') . ')',
+                'Рейтинг диспетчера' => ($user['vatsim']['rating']['long'] ?? 'Не указано') . ' (' . ($user['vatsim']['rating']['short'] ?? '-') . ')',
+                'Рейтинг пилота' => ($user['vatsim']['pilotrating']['long'] ?? 'Не указано') . ' (' . ($user['vatsim']['pilotrating']['short'] ?? '-') . ')',
+            ];
+        @endphp
+
+        <div class="fields">
+            @foreach ($fields as $label => $value)
                 <div class="field">
                     <label>{{ $label }}:</label>
-                    <span>{{ $value }}</span>
+                    <span>{{ e($value) }}</span>
                 </div>
             @endforeach
         </div>

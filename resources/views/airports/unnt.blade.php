@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@include('layouts.cap')
 @section('title', 'UNNT')
 
 @section('header-style')

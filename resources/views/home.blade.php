@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@include('layouts.cap')
 @section('title', __('Региональный центр Новосибирск | VATSIM'))
 
 @section('header-title', __('Региональный центр Новосибирск'))

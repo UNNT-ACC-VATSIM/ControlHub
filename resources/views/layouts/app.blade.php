@@ -3,7 +3,7 @@
 <head>
     @include('layouts.header') <!-- Подключаем header.blade.php -->
 </head>
-    @include('layouts.cap') <!-- Подключаем cap.blade.php -->
+  <!-- @include('layouts.cap')  Подключаем cap.blade.php -->
     @include('layouts.nav-menu') <!-- Подключаем navmenu.blade.php -->
     
     <main class="content">
