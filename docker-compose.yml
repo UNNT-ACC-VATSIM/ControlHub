@@ -2,30 +2,43 @@ version: '3.8'
 
 services:
   app:
-    build: .
-    container_name: controlhub-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
     volumes:
-      - .:/var/www
+      - ./:/var/www
     ports:
       - "8000:8000"
     depends_on:
+      - node
       - db
+    restart: unless-stopped
+
+  node:
+    image: node:20
+    container_name: laravel-node
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: ["npm", "run", "dev"]
+    ports:
+      - "5173:5173"
     restart: unless-stopped
 
   db:
     image: mysql:8.0
-    container_name: controlhub-db
+    container_name: laravel-db
     environment:
       MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: controlhub
-      MYSQL_USER: controlhub_user
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel_user
       MYSQL_PASSWORD: secret
       TZ: Europe/Moscow
     ports:
        - "3306:3306"
     volumes:
       - dbdata:/var/lib/mysql
-    restart: unless-stopped
 
 volumes:
-  dbdata: 
+  dbdata:
