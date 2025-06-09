@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use App\Models\VatsimUser;
+use Carbon\Carbon;
 
 class VatsimLoginController extends Controller
 {
@@ -16,7 +18,12 @@ class VatsimLoginController extends Controller
     public function showLogin()
     {
         if (Session::has('user_data')) {
-            return redirect()->route('profile');
+            $user = Session::get('user_data')['data'] ?? null;
+            $cid = $user['cid'] ?? null;
+            if ($cid) {
+                return redirect()->route('profile.show', ['cid' => $cid]);
+            }
+            return redirect()->route('home');
         }
 
         $auth_url = 'https://auth-dev.vatsim.net/oauth/authorize?' . http_build_query([
@@ -32,7 +39,7 @@ class VatsimLoginController extends Controller
     public function handleProviderCallback(Request $request)
     {
         if (!$request->has('code')) {
-            return redirect()->route('login')->withErrors(['msg' => 'Код авторизации не получен.']);
+            return redirect()->route('login')->with('error', 'Код авторизации не получен.');
         }
 
         $tokenResponse = Http::asForm()->post('https://auth-dev.vatsim.net/oauth/token', [
@@ -44,7 +51,7 @@ class VatsimLoginController extends Controller
         ]);
 
         if (!$tokenResponse->successful() || empty($tokenResponse['access_token'])) {
-            return redirect()->route('login')->withErrors(['msg' => 'Не удалось получить токен.']);
+            return redirect()->route('login')->with('error', 'Не удалось получить токен.');
         }
 
         $access_token = $tokenResponse['access_token'];
@@ -52,33 +59,34 @@ class VatsimLoginController extends Controller
         $userResponse = Http::withToken($access_token)->get('https://auth-dev.vatsim.net/api/user');
 
         if (!$userResponse->successful()) {
-            return redirect()->route('login')->withErrors(['msg' => 'Не удалось получить данные пользователя.']);
+            return redirect()->route('login')->with('error', 'Не удалось получить данные пользователя.');
         }
 
         $user_data = $userResponse->json();
 
+        // Сохраняем в сессию
         Session::put('user_data', $user_data);
+        Session::put('access_token', $access_token);
 
-        return redirect()->route('home');
-    }
-
-    public function profile()
-    {
-        $user_data = Session::get('user_data');
-
-        if (!$user_data) {
-            return redirect()->route('login');
+        // Сохраняем или обновляем профиль пользователя в базе
+        $cid = $user_data['data']['cid'] ?? null;
+        if ($cid) {
+            VatsimUser::updateOrCreate(
+                ['cid' => $cid],
+                [
+                    'profile_data' => json_encode($user_data),
+                    'updated_at' => now(),
+                ]
+            );
         }
 
-        return view('profile', compact('user_data'));
+        return redirect()->route('home');
     }
 
     public function logout(Request $request)
     {
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        Session::forget('user_data');
-
         return redirect()->route('login')->with('success', 'Вы успешно вышли из системы.');
     }
 
@@ -95,64 +103,99 @@ class VatsimLoginController extends Controller
         ]);
     }
 
-    /**
-     * Просмотр произвольного профиля по CID
-     */
-public function showUserProfile($id)
-{
-    $currentUser = Session::get('user_data');
+    private function getSystemAccessToken()
+    {
+        $response = Http::asForm()->post('https://auth-dev.vatsim.net/oauth/token', [
+            'grant_type'    => 'client_credentials',
+            'client_id'     => $this->client_id,
+            'client_secret' => $this->client_secret,
+        ]);
 
-    if (!$currentUser) {
-        return redirect()->route('login');
+        if ($response->successful() && !empty($response['access_token'])) {
+            return $response['access_token'];
+        }
+
+        return null;
     }
 
-    $currentCid = $currentUser['data']['cid'] ?? null;
+    public function showUserProfile($cid)
+    {
+        if (!session()->has('user_data')) {
+            return redirect()->route('login');
+        }
 
-    // CID админов (замени на реальные CID)
-    $adminCids = ['10000010'];
+        $currentUser = session('user_data');
+        $currentCid = $currentUser['data']['cid'] ?? null;
+        $adminCids = ['10000010'];
 
-    // Проверяем права: либо это профиль текущего пользователя, либо админ
-    if ((string)$currentCid !== (string)$id && !in_array($currentCid, $adminCids)) {
-        abort(403, 'Доступ запрещён');
+        // Попытаемся получить профиль из БД
+        $cachedProfile = VatsimUser::where('cid', $cid)->first();
+
+        $shouldRefresh = true;
+        if ($cachedProfile) {
+            // Если профиль обновлялся менее 5 минут назад — берем из кэша
+            $updatedAt = Carbon::parse($cachedProfile->updated_at);
+            if ($updatedAt->gt(now()->subMinutes(5))) {
+                $shouldRefresh = false;
+            }
+        }
+
+        if ($currentCid == $cid) {
+            if ($shouldRefresh) {
+                $accessToken = session('access_token');
+                $response = Http::withToken($accessToken)->get("https://auth-dev.vatsim.net/api/user");
+
+                if ($response->successful()) {
+                    $userData = $response->json();
+
+                    // Обновляем базу
+                    VatsimUser::updateOrCreate(
+                        ['cid' => $cid],
+                        ['profile_data' => json_encode($userData), 'updated_at' => now()]
+                    );
+
+                    return view('profile', ['user_data' => $userData]);
+                } else {
+                    // Если не удалось получить с API — отдаём кеш или ошибку
+                    if ($cachedProfile) {
+                        return view('profile', ['user_data' => json_decode($cachedProfile->profile_data, true)]);
+                    }
+                    abort($response->status(), 'Ошибка API: не удалось получить данные пользователя.');
+                }
+            } else {
+                // Отдаем из кеша
+                return view('profile', ['user_data' => json_decode($cachedProfile->profile_data, true)]);
+            }
+        } elseif (in_array($currentCid, $adminCids)) {
+            // Админ может смотреть чужой профиль, всегда обновляем с API
+
+            $accessToken = $this->getSystemAccessToken();
+
+            if (!$accessToken) {
+                abort(500, 'Не удалось получить системный токен для API VATSIM.');
+            }
+
+            $response = Http::withToken($accessToken)->get("https://auth-dev.vatsim.net/api/user/{$cid}");
+
+            if (!$response->successful()) {
+                // Если ошибка, отдаем кеш если есть
+                if ($cachedProfile) {
+                    return view('profile', ['user_data' => json_decode($cachedProfile->profile_data, true)]);
+                }
+                abort($response->status(), 'Ошибка API: не удалось получить данные пользователя.');
+            }
+
+            $userData = $response->json();
+
+            // Обновляем базу
+            VatsimUser::updateOrCreate(
+                ['cid' => $cid],
+                ['profile_data' => json_encode($userData), 'updated_at' => now()]
+            );
+
+            return view('profile', ['user_data' => $userData]);
+        } else {
+            abort(403, 'Доступ запрещён');
+        }
     }
-
-    // Получаем системный токен для доступа к API (реализуй метод, или временно используй токен текущего пользователя)
-    $accessToken = $this->getSystemAccessToken();
-
-    if (!$accessToken) {
-        abort(500, 'Не удалось получить системный токен для доступа к API');
-    }
-
-    // Запрашиваем данные пользователя по CID
-    $response = Http::withToken($accessToken)->get("https://auth-dev.vatsim.net/api/user/{$id}");
-
-    if (!$response->successful()) {
-        abort(404, 'Пользователь не найден');
-    }
-
-    $user_data = $response->json();
-
-    // Возвращаем тот же шаблон профиля, но с данными нужного пользователя
-    return view('home', compact('user_data'));
-}
-
-/**
- * Пример метода получения системного токена для API
- * Тебе нужно реализовать этот метод — 
- * например, делать запрос oauth/token с grant_type=client_credentials
- */
-private function getSystemAccessToken()
-{
-    $response = Http::asForm()->post('https://auth-dev.vatsim.net/oauth/token', [
-        'grant_type' => 'client_credentials',
-        'client_id' => $this->client_id,
-        'client_secret' => $this->client_secret,
-    ]);
-
-    if ($response->successful() && !empty($response['access_token'])) {
-        return $response['access_token'];
-    }
-
-    return null;
-}
 }

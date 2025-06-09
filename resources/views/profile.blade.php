@@ -1,9 +1,13 @@
 @extends('layouts.app')
-@include('layouts.cap')
+
 @section('title', 'Профиль VATSIM')
 @section('page_title', 'Профиль')
 
 @section('content')
+
+    {{-- Подключение капа, если нужно, лучше внутри layout или сюда --}}
+    @include('layouts.cap')
+
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit" class="logout-btn">Выйти</button>
